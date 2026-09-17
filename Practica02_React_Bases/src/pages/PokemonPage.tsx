@@ -13,6 +13,7 @@ interface Pokemon {
 }
 
 const API_URL = 'https://pokeapi.co/api/v2/pokemon?limit=151';
+// const API_URL = 'https://pokeapi.co/api/v2/pokemon/';
 
 // A partir de la url ".../pokemon/25/" obtenemos el id (25).
 const obtenerId = (url: string): number => {
@@ -58,7 +59,7 @@ export default function PokemonPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-slate-700">
+      <h2 className="text-xl font-semibold mb-4 text-slate-700 dark:text-slate-200">
         Consumo de API: Pokémon (Primera generación - 151)
       </h2>
 
@@ -79,9 +80,9 @@ export default function PokemonPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar Pokémon por nombre..."
-            className="mt-6 w-full max-w-sm block px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+            className="mt-6 w-full max-w-sm block px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400"
           />
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             Mostrando {pokemonesFiltrados.length} de {pokemones.length} Pokémon
           </p>
 

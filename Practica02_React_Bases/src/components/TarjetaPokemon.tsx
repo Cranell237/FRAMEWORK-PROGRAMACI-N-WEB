@@ -6,8 +6,8 @@ interface Props {
 
 export default function TarjetaPokemon({ id, nombre, imagen }: Props) {
   return (
-    <div className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center">
-      <span className="self-end text-xs font-semibold text-slate-400">
+    <div className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center dark:bg-slate-800 dark:border-slate-700">
+      <span className="self-end text-xs font-semibold text-slate-400 dark:text-slate-500">
         #{id.toString().padStart(3, '0')}
       </span>
       <img
@@ -16,7 +16,7 @@ export default function TarjetaPokemon({ id, nombre, imagen }: Props) {
         loading="lazy"
         className="w-24 h-24 object-contain"
       />
-      <h3 className="mt-2 text-base font-semibold text-slate-800 capitalize">
+      <h3 className="mt-2 text-base font-semibold text-slate-800 capitalize dark:text-slate-100">
         {nombre}
       </h3>
     </div>

@@ -25,7 +25,7 @@ export default function InicioPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-slate-700">Consumo de API: Usuario</h2>
+      <h2 className="text-xl font-semibold mb-4 text-slate-700 dark:text-slate-200">Consumo de API: Usuario</h2>
       <button
         onClick={obtenerDatos}
         className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition-all cursor-pointer"
