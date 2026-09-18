@@ -32,7 +32,7 @@ export default function App() {
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
             Fundamentos de React
           </h1>
-
+          <h1 className="text-1xl font-bold text-slate-800 dark:text-slate-100">Autor: Estalin Gabriel Jaen Garcia</h1>
           {/* Interruptor de modo oscuro */}
           <button
             onClick={() => setOscuro((v) => !v)}
