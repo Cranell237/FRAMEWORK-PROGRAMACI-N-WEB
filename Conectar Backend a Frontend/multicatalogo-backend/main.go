@@ -15,10 +15,21 @@ func main() {
 	// Instanciamos una nueva aplicación de Fiber y la guardamos en la variable 'app'.
 	app := fiber.New()
 
-	// Implementamos el middleware CORS a nivel global usando app.Use() para interceptar todas las peticiones entrantes.
+	// ===== CONFIGURACIÓN ANTERIOR (solo permitía una IP de red específica) - conservada como referencia =====
+	// app.Use(cors.New(cors.Config{
+	// 	// Configuramos el CORS para permitir únicamente peticiones provenientes del frontend local en el puerto 5173.
+	// 	AllowOrigins: "http://172.17.82.108:5173",
+	// 	// Declaramos de forma explícita qué cabeceras (Headers) se permitirán en la comunicación.
+	// 	AllowHeaders: "Origin, Content-Type, Accept",
+	// }))
+	// ========================================================================================================
+
+	// NUEVA CONFIGURACIÓN: agregamos http://localhost:5173 (donde Vite abre el frontend por defecto).
+	// CORS es una protección del navegador: sin este permiso, el navegador bloquearía las peticiones del frontend.
+	// Separamos varios orígenes permitidos con comas.
 	app.Use(cors.New(cors.Config{
-		// Configuramos el CORS para permitir únicamente peticiones provenientes del frontend local en el puerto 5173.
-		AllowOrigins: "http://172.17.82.108:5173",
+		// Permitimos tanto localhost como la IP de red, para que funcione en cualquiera de los dos casos.
+		AllowOrigins: "http://localhost:5173, http://127.0.0.1:5173, http://172.17.82.108:5173",
 		// Declaramos de forma explícita qué cabeceras (Headers) se permitirán en la comunicación.
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
