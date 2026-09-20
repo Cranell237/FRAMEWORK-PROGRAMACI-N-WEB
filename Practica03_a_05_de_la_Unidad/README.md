@@ -60,6 +60,30 @@ Correo:      admin@upse.edu.ec
 Contraseña:  123456
 ```
 
+## Acceder desde el celular (misma red Wi-Fi)
+
+Se puede abrir la app desde un celular u otro dispositivo, siempre que esté **conectado a la
+misma red** que la PC que corre los servidores.
+
+1. **Averigua la IP de tu PC en la red.** En Windows ejecuta `ipconfig` y busca la
+   "Dirección IPv4" de tu adaptador activo (por ejemplo `192.168.1.9`).
+2. **Levanta el frontend visible en la red** (bandera `--host`):
+   ```bash
+   npm run dev -- --host
+   ```
+   El backend (`go run main.go`) ya escucha en todas las interfaces por defecto.
+3. **En el celular**, abre en el navegador: `http://<IP_DE_TU_PC>:5173` (ej. `http://192.168.1.9:5173`).
+
+El frontend arma la URL del backend automáticamente con el host desde el que se abrió
+(ver [`src/services/api.ts`](src/services/api.ts)), así que **no hay que configurar nada en el celular**.
+
+> ⚠️ **Importante para la presentación:** el backend solo autoriza (CORS) la IP configurada en
+> `AllowOrigins` dentro del `main.go`. Si tu IP de red cambia o pruebas en otra red, actualiza esa
+> línea con la nueva IP: `http://<TU_NUEVA_IP>:5173`. El `api.ts` **no** se toca (ya es automático).
+
+> Si el celular no carga la página, revisa el **Firewall de Windows** (permite Node.js y Go en redes
+> privadas, o abre los puertos 5173 y 3000) y que el router no tenga activado el *aislamiento de clientes*.
+
 ## Nota sobre CORS
 
 El backend usa el middleware CORS para autorizar las peticiones del frontend. Está configurado
