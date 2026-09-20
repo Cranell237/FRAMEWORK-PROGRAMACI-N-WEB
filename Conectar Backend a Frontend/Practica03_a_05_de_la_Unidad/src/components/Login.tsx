@@ -2,6 +2,8 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+// Importamos la función login de nuestra capa de servicios, que se comunica con el backend de Go.
+import { login as loginApi } from '../services/api';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
@@ -11,15 +13,35 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // ===== CÓDIGO ANTERIOR (validación hardcodeada en el navegador) - conservado como referencia =====
+  // const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //
+  //   // Simulación de validación hardcodeada (A futuro se reemplazará por llamada a API)
+  //   if (email === 'admin@upse.edu.ec' && password === '123456') {
+  //     setError('');
+  //     login(email); // Cambiamos el estado global a autenticado
+  //     navigate('/'); // Redirigimos al Dashboard
+  //   } else {
+  //     setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
+  //   }
+  // };
+  // ================================================================================================
+
+  // NUEVA VERSIÓN: ahora la validación la hace el backend de Go, no el navegador.
+  // Marcamos la función como 'async' porque la llamada a la API es asíncrona (esperamos la respuesta del servidor).
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Simulación de validación hardcodeada (A futuro se reemplazará por llamada a API)
-    if (email === 'admin@upse.edu.ec' && password === '123456') {
+
+    try {
+      // Llamamos al backend enviándole el correo y la contraseña. 'await' pausa hasta recibir la respuesta.
+      const data = await loginApi(email, password);
       setError('');
-      login(email); // Cambiamos el estado global a autenticado
+      // Si el backend aceptó las credenciales, guardamos el correo que él nos devolvió en el estado global.
+      login(data.email);
       navigate('/'); // Redirigimos al Dashboard
-    } else {
+    } catch {
+      // Si el backend responde con error (401) o el servidor no está encendido, mostramos el mensaje.
       setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
     }
   };
