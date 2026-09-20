@@ -28,8 +28,9 @@ func main() {
 	// CORS es una protección del navegador: sin este permiso, el navegador bloquearía las peticiones del frontend.
 	// Separamos varios orígenes permitidos con comas.
 	app.Use(cors.New(cors.Config{
-		// Permitimos tanto localhost como la IP de red, para que funcione en cualquiera de los dos casos.
-		AllowOrigins: "http://localhost:5173, http://127.0.0.1:5173, http://172.17.82.108:5173",
+		// Permitimos localhost (para la PC) y la IP de esta máquina en la red local (para acceder desde el celular).
+		// Si tu IP de red cambia, actualiza aquí la dirección http://<TU_IP>:5173.
+		AllowOrigins: "http://localhost:5173, http://127.0.0.1:5173, http://192.168.1.9:5173",
 		// Declaramos de forma explícita qué cabeceras (Headers) se permitirán en la comunicación.
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
