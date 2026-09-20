@@ -63,7 +63,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, onNavigate }: SidebarProps) => {
       {/* Encabezado / logo. Si está colapsado (en escritorio) mostramos solo la inicial. */}
       <div className="h-16 flex items-center px-6 text-2xl font-bold border-b border-slate-700 overflow-hidden whitespace-nowrap">
         <span className={isCollapsed ? "md:hidden" : ""}>MultiCatálogo</span>
-        <span className={isCollapsed ? "hidden md:inline" : "hidden"}>M</span>
+        {/* <span className={isCollapsed ? "hidden md:inline" : "hidden"}>M</span> */}
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
