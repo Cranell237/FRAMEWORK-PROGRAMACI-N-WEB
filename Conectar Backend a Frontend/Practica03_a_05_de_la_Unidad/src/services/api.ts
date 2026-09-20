@@ -6,8 +6,16 @@
 // Importamos el tipo Producto que ya estaba definido en el CartContext para reutilizarlo.
 import type { Producto } from '../context/CartContext';
 
-// URL base donde escucha el backend de Go (Fiber corre en el puerto 3000).
-const API_URL = 'http://localhost:3000';
+// ===== VERSIÓN ANTERIOR (fija a localhost) - conservada como referencia =====
+// Funciona en la PC, pero NO desde un celular: para el celular "localhost" es el propio celular.
+// const API_URL = 'http://localhost:3000';
+// =============================================================================
+
+// NUEVA VERSIÓN: la URL del backend se arma con el MISMO host desde el que se abrió el frontend.
+// - Si abres http://localhost:5173      -> hostname = "localhost"    -> backend en localhost:3000
+// - Si el celular abre http://192.168.1.9:5173 -> hostname = "192.168.1.9" -> backend en 192.168.1.9:3000
+// Así funciona igual en la PC y en cualquier dispositivo de la misma red, sin tocar el código.
+const API_URL = `http://${window.location.hostname}:3000`;
 
 // Definimos la forma de la respuesta que devuelve el backend cuando el login es exitoso.
 export interface LoginResponse {
