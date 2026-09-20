@@ -40,9 +40,15 @@ const Login = () => {
       // Si el backend aceptó las credenciales, guardamos el correo que él nos devolvió en el estado global.
       login(data.email);
       navigate('/'); // Redirigimos al Dashboard
-    } catch {
-      // Si el backend responde con error (401) o el servidor no está encendido, mostramos el mensaje.
-      setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
+    } catch (err) {
+      // Distinguimos el tipo de fallo para no dar una causa falsa al usuario:
+      if (err instanceof Error && err.message === 'connection') {
+        // El servidor no respondió (backend apagado, sin red o bloqueo CORS).
+        setError('No se pudo conectar con el servidor. Verifica que el backend esté encendido.');
+      } else {
+        // El servidor sí respondió, pero rechazó las credenciales (401).
+        setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
+      }
     }
   };
 
