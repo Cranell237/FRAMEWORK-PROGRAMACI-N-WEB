@@ -22,8 +22,8 @@ Se reemplazaron los datos *hardcodeados* del frontend por llamadas HTTP a la API
 
 ## Requisitos
 
-- **Node.js** 18+ y npm (para el frontend).
-- **Go** 1.21+ (para el backend, ubicado en la carpeta hermana `multicatalogo-backend`).
+- **Node.js** 20.19+ o 22.12+ y npm (lo exige Vite 8; con Node 18 la instalación/compilación falla).
+- **Go** 1.26+ (el módulo declara `go 1.26.0` en `multicatalogo-backend/go.mod`).
 
 ## Cómo levantar el proyecto
 
@@ -71,15 +71,20 @@ misma red** que la PC que corre los servidores.
    ```bash
    npm run dev -- --host
    ```
-   El backend (`go run main.go`) ya escucha en todas las interfaces por defecto.
-3. **En el celular**, abre en el navegador: `http://<IP_DE_TU_PC>:5173` (ej. `http://192.168.1.9:5173`).
+3. **Levanta el backend autorizando tu IP** mediante la variable de entorno `CORS_ORIGINS`
+   (así no hay que editar el código):
+   ```bash
+   CORS_ORIGINS="http://<IP_DE_TU_PC>:5173" go run main.go
+   ```
+   El backend ya escucha en todas las interfaces por defecto.
+4. **En el celular**, abre en el navegador: `http://<IP_DE_TU_PC>:5173` (ej. `http://192.168.1.9:5173`).
 
 El frontend arma la URL del backend automáticamente con el host desde el que se abrió
 (ver [`src/services/api.ts`](src/services/api.ts)), así que **no hay que configurar nada en el celular**.
 
-> ⚠️ **Importante para la presentación:** el backend solo autoriza (CORS) la IP configurada en
-> `AllowOrigins` dentro del `main.go`. Si tu IP de red cambia o pruebas en otra red, actualiza esa
-> línea con la nueva IP: `http://<TU_NUEVA_IP>:5173`. El `api.ts` **no** se toca (ya es automático).
+> ⚠️ **Importante para la presentación:** el backend solo autoriza (CORS) los orígenes de la variable
+> `CORS_ORIGINS` (o `localhost` por defecto si no se define). Si pruebas en otra red, solo cambia el valor
+> de esa variable al arrancar el backend; **no** hay que editar el código. El `api.ts` tampoco se toca.
 
 > Si el celular no carga la página, revisa el **Firewall de Windows** (permite Node.js y Go en redes
 > privadas, o abre los puertos 5173 y 3000) y que el router no tenga activado el *aislamiento de clientes*.

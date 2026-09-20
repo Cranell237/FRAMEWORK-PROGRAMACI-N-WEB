@@ -2,6 +2,9 @@
 package main
 
 import (
+	// Importamos el paquete 'os' para leer variables de entorno (configuración sin tocar el código).
+	"os"
+
 	// Importamos el framework principal Fiber.
 	"github.com/gofiber/fiber/v2"
 	// Importamos el middleware CORS para gestionar la seguridad entre distintos puertos/dominios.
@@ -24,13 +27,18 @@ func main() {
 	// }))
 	// ========================================================================================================
 
-	// NUEVA CONFIGURACIÓN: agregamos http://localhost:5173 (donde Vite abre el frontend por defecto).
+	// NUEVA CONFIGURACIÓN: los orígenes permitidos ahora se leen de la variable de entorno CORS_ORIGINS.
+	// Así, para acceder desde otra IP de la red (celular) NO hay que editar el código: basta con arrancar el
+	// backend así ->  CORS_ORIGINS="http://192.168.1.9:5173" go run main.go
+	// Si la variable no está definida, usamos localhost por defecto (caso más común en desarrollo).
+	allowOrigins := os.Getenv("CORS_ORIGINS")
+	if allowOrigins == "" {
+		allowOrigins = "http://localhost:5173, http://127.0.0.1:5173"
+	}
+
 	// CORS es una protección del navegador: sin este permiso, el navegador bloquearía las peticiones del frontend.
-	// Separamos varios orígenes permitidos con comas.
 	app.Use(cors.New(cors.Config{
-		// Permitimos localhost (para la PC) y la IP de esta máquina en la red local (para acceder desde el celular).
-		// Si tu IP de red cambia, actualiza aquí la dirección http://<TU_IP>:5173.
-		AllowOrigins: "http://localhost:5173, http://127.0.0.1:5173, http://192.168.1.9:5173",
+		AllowOrigins: allowOrigins,
 		// Declaramos de forma explícita qué cabeceras (Headers) se permitirán en la comunicación.
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))

@@ -25,17 +25,24 @@ export interface LoginResponse {
 
 // login() envía el correo y la contraseña al endpoint POST /api/login del backend.
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  // fetch hace la petición HTTP. Le indicamos método POST y que el cuerpo va en formato JSON.
-  const respuesta = await fetch(`${API_URL}/api/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    // Convertimos el objeto JS a texto JSON. Las claves email/password coinciden con el struct de Go.
-    body: JSON.stringify({ email, password }),
-  });
+  let respuesta: Response;
+  try {
+    // fetch hace la petición HTTP. Le indicamos método POST y que el cuerpo va en formato JSON.
+    respuesta = await fetch(`${API_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // Convertimos el objeto JS a texto JSON. Las claves email/password coinciden con el struct de Go.
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    // fetch SOLO lanza excepción cuando ni siquiera hubo respuesta: backend apagado, red caída o bloqueo CORS.
+    // Lanzamos un error 'connection' para que el componente muestre un mensaje distinto (no "credenciales").
+    throw new Error('connection');
+  }
 
-  // Si el backend responde con un estado de error (ej. 401 credenciales incorrectas), lanzamos un error.
+  // Si el backend respondió pero con error de credenciales (401), lo señalamos como 'credentials'.
   if (!respuesta.ok) {
-    throw new Error('Credenciales incorrectas');
+    throw new Error('credentials');
   }
 
   // Si todo salió bien, convertimos la respuesta JSON a un objeto JS y lo retornamos.
