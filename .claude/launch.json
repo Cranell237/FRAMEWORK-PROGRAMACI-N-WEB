@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "backend", "runtimeExecutable": "go", "runtimeArgs": ["-C", "Backend", "run", "main.go"], "port": 3000 },
+    { "name": "frontend", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "Frontend", "run", "dev"], "port": 5173 }
+  ]
+}
