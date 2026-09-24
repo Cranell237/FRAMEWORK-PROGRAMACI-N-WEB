@@ -1,49 +1,41 @@
 // src/components/Login.tsx
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-// Importamos la función login de nuestra capa de servicios, que se comunica con el backend de Go.
-import { login as loginApi } from '../services/api';
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth, type Rol } from "../context/AuthContext";
+// Usamos la capa de servicios (api.ts): arma la URL del backend con el host actual,
+// así el login funciona igual desde la PC (localhost) y desde el celular (IP de red).
+import { login as loginApi } from "../services/api";
 
 const Login = () => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [error, setError] = useState<string>('');
-  
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // ===== CÓDIGO ANTERIOR (validación hardcodeada en el navegador) - conservado como referencia =====
-  // const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //
-  //   // Simulación de validación hardcodeada (A futuro se reemplazará por llamada a API)
-  //   if (email === 'admin@upse.edu.ec' && password === '123456') {
-  //     setError('');
-  //     login(email); // Cambiamos el estado global a autenticado
-  //     navigate('/'); // Redirigimos al Dashboard
-  //   } else {
-  //     setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
-  //   }
-  // };
-  // ================================================================================================
-
-  // NUEVA VERSIÓN: ahora la validación la hace el backend de Go, no el navegador.
-  // Marcamos la función como 'async' porque la llamada a la API es asíncrona (esperamos la respuesta del servidor).
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
-    try {
-      // Llamamos al backend enviándole el correo y la contraseña. 'await' pausa hasta recibir la respuesta.
-      const data = await loginApi(email, password);
-      setError('');
-      // Si el backend aceptó las credenciales, guardamos el correo que él nos devolvió en el estado global.
-      login(data.email);
-      navigate('/'); // Redirigimos al Dashboard
-    } catch {
-      // Si el backend responde con error (401) o el servidor no está encendido, mostramos el mensaje.
-      setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
-    }
+    // Consumo de API RESTful usando promesas (Tema 4)
+    loginApi(email, password)
+      .then((data) => {
+        setError("");
+        // La API devuelve el rol (admin | cliente) junto al correo (Tema 5)
+        const rol: Rol = data.rol === "admin" ? "admin" : "cliente";
+        login({ email: data.email, rol });
+
+        // Redirigimos según el rol: admin al Dashboard, cliente a la Tienda
+        navigate(rol === "admin" ? "/" : "/tienda");
+      })
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -51,7 +43,9 @@ const Login = () => {
       <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 border border-slate-200">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-slate-900">MultiCatálogo</h2>
-          <p className="text-slate-500 mt-2">Ingresa a tu cuenta para continuar</p>
+          <p className="text-slate-500 mt-2">
+            Ingresa a tu cuenta para continuar
+          </p>
         </div>
 
         {error && (
@@ -62,7 +56,9 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Correo Electrónico</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Correo Electrónico
+            </label>
             <input
               type="email"
               value={email}
@@ -74,7 +70,9 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Contraseña
+            </label>
             <input
               type="password"
               value={password}
@@ -87,11 +85,18 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition"
+            disabled={loading}
+            className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Iniciar Sesión
+            {loading ? "Validando..." : "Iniciar Sesión"}
           </button>
         </form>
+
+        <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600 space-y-1">
+          <p className="font-semibold text-slate-700">Cuentas de prueba:</p>
+          <p>👑 Admin: <span className="font-mono">admin@upse.edu.ec / 123456</span></p>
+          <p>🛍️ Cliente: <span className="font-mono">cliente@upse.edu.ec / 123456</span></p>
+        </div>
       </div>
     </div>
   );
