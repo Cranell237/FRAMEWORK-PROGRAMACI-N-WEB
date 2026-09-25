@@ -23,7 +23,7 @@ Se reemplazaron los datos *hardcodeados* del frontend por llamadas HTTP a la API
 ## Requisitos
 
 - **Node.js** 18+ y npm (para el frontend).
-- **Go** 1.21+ (para el backend, ubicado en la carpeta hermana `multicatalogo-backend`).
+- **Go** 1.21+ (para el backend, ubicado en la carpeta hermana `Backend`).
 
 ## Cómo levantar el proyecto
 
@@ -32,7 +32,7 @@ El proyecto son **dos programas** que deben correr **al mismo tiempo**, cada uno
 ### 1. Backend (API en Go) — puerto 3000
 
 ```bash
-cd ../multicatalogo-backend
+cd ../Backend
 go run main.go
 ```
 
@@ -46,7 +46,7 @@ Expone dos endpoints:
 ### 2. Frontend (React) — puerto 5173
 
 ```bash
-cd Practica03_a_05_de_la_Unidad
+cd ../Frontend
 npm install
 npm run dev
 ```

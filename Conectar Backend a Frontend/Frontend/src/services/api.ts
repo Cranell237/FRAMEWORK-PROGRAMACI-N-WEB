@@ -3,8 +3,8 @@
 // La ventaja es que si mañana cambia la URL del servidor, solo la editas aquí en un lugar,
 // y no tienes que buscarla por todos los componentes.
 
-// Importamos el tipo Producto que ya estaba definido en el CartContext para reutilizarlo.
-import type { Producto } from '../context/CartContext';
+// Importamos el tipo Producto (desde Tema 5 vive en data/productos.ts) para reutilizarlo.
+import type { Producto } from '../data/productos';
 
 // ===== VERSIÓN ANTERIOR (fija a localhost) - conservada como referencia =====
 // Funciona en la PC, pero NO desde un celular: para el celular "localhost" es el propio celular.
@@ -21,6 +21,8 @@ const API_URL = `http://${window.location.hostname}:3000`;
 export interface LoginResponse {
   token: string;
   email: string;
+  // Tema 5: el backend también devuelve el rol del usuario (admin | cliente).
+  rol: string;
 }
 
 // login() envía el correo y la contraseña al endpoint POST /api/login del backend.
