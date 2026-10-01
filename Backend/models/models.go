@@ -9,6 +9,19 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// APIError estandariza la forma de TODAS las respuestas de error HTTP de la API.
+// Tener una estructura única hace que el frontend (o Postman) reciba siempre el mismo
+// formato predecible cuando algo sale mal, en lugar de mensajes sueltos y distintos.
+type APIError struct {
+	// Status es el código HTTP del error (ej. 400, 401, 404). Se mapea al campo "status" del JSON.
+	Status int `json:"status"`
+	// Message es la descripción legible del error. Se mapea al campo "message" del JSON.
+	Message string `json:"message"`
+	// Details es información adicional y OPCIONAL sobre el error (ej. qué campo falló).
+	// `omitempty` hace que, si está vacío/nil, el campo "details" ni siquiera aparezca en el JSON.
+	Details interface{} `json:"details,omitempty"`
+}
+
 // Producto define la estructura de los datos de un artículo en nuestro catálogo.
 type Producto struct {
 	// ID es el identificador único numérico del producto.

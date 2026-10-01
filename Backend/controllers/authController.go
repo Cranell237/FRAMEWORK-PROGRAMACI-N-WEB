@@ -15,8 +15,27 @@ func Login(c *fiber.Ctx) error {
 	
 	// Intentamos parsear (transformar) el cuerpo JSON entrante y guardarlo en la variable 'req'.
 	if err := c.BodyParser(&req); err != nil {
-		// Si ocurre un error al parsear (ej. JSON mal formado), retornamos un estado HTTP 400 (Bad Request).
-		return c.Status(400).JSON(fiber.Map{"error": "Cuerpo de petición inválido"})
+		// Si ocurre un error al parsear (ej. JSON mal formado), retornamos un HTTP 400 con la estructura estándar APIError.
+		return c.Status(fiber.StatusBadRequest).JSON(models.APIError{
+			Status:  fiber.StatusBadRequest,
+			Message: "Cuerpo de petición inválido",
+		})
+	}
+
+	// VALIDACIÓN DE ENTRADA: antes de comparar credenciales, exigimos que email y password no vengan vacíos.
+	// Esto evita procesar peticiones incompletas y devuelve un error claro y estandarizado al cliente.
+	if req.Email == "" || req.Password == "" {
+		// Armamos un mapa con el detalle de qué campo(s) faltan, para ayudar a quien consume la API.
+		faltantes := fiber.Map{
+			"email":    req.Email == "",
+			"password": req.Password == "",
+		}
+		// Retornamos un HTTP 400 (Bad Request) usando APIError, incluyendo los detalles de los campos faltantes.
+		return c.Status(fiber.StatusBadRequest).JSON(models.APIError{
+			Status:  fiber.StatusBadRequest,
+			Message: "Los campos email y password son obligatorios",
+			Details: faltantes,
+		})
 	}
 
 	// Evaluamos si el email y la contraseña coinciden con las credenciales predefinidas.
@@ -29,7 +48,10 @@ func Login(c *fiber.Ctx) error {
 		// Si es un cliente registrado, retornamos un estado HTTP 200 con token ficticio, correo y rol cliente.
 		return c.JSON(fiber.Map{"token": "fake-jwt-token-456", "email": req.Email, "rol": "cliente"})
 	default:
-		// Si las credenciales son incorrectas, retornamos un estado HTTP 401 (No autorizado) con un mensaje de error.
-		return c.Status(401).JSON(fiber.Map{"error": "Credenciales incorrectas"})
+		// Si las credenciales son incorrectas, retornamos un HTTP 401 (No autorizado) usando la estructura estándar APIError.
+		return c.Status(fiber.StatusUnauthorized).JSON(models.APIError{
+			Status:  fiber.StatusUnauthorized,
+			Message: "Credenciales incorrectas",
+		})
 	}
 }
