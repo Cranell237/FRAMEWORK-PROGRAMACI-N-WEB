@@ -2,17 +2,27 @@
 package controllers
 
 import (
+	"errors"
+
 	// Importamos el framework Fiber para tener acceso al contexto (c *fiber.Ctx) de la petición HTTP.
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	// Importamos nuestro paquete de modelos para poder usar la estructura LoginRequest.
 	"multicatalogo-backend/models"
+	"multicatalogo-backend/repository"
 )
+
+var dataRepository *repository.Repository
+
+func SetRepository(repo *repository.Repository) {
+	dataRepository = repo
+}
 
 // Login es la función controladora que se ejecutará cuando el cliente envíe sus credenciales.
 func Login(c *fiber.Ctx) error {
 	// Creamos una variable 'req' del tipo LoginRequest (ubicada en nuestro paquete models) para almacenar los datos.
 	var req models.LoginRequest
-	
+
 	// Intentamos parsear (transformar) el cuerpo JSON entrante y guardarlo en la variable 'req'.
 	if err := c.BodyParser(&req); err != nil {
 		// Si ocurre un error al parsear (ej. JSON mal formado), retornamos un HTTP 400 con la estructura estándar APIError.
@@ -38,20 +48,24 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Evaluamos si el email y la contraseña coinciden con las credenciales predefinidas.
-	// Nota: al estar hardcodeado, distinguimos dos roles: admin y cliente.
-	switch {
-	case req.Email == "admin@upse.edu.ec" && req.Password == "123456":
-		// Si es el administrador, retornamos un estado HTTP 200 (por defecto) con token ficticio, correo y rol admin.
-		return c.JSON(fiber.Map{"token": "fake-jwt-token-123", "email": req.Email, "rol": "admin"})
-	case req.Email == "cliente@upse.edu.ec" && req.Password == "123456":
-		// Si es un cliente registrado, retornamos un estado HTTP 200 con token ficticio, correo y rol cliente.
-		return c.JSON(fiber.Map{"token": "fake-jwt-token-456", "email": req.Email, "rol": "cliente"})
-	default:
-		// Si las credenciales son incorrectas, retornamos un HTTP 401 (No autorizado) usando la estructura estándar APIError.
+	usuario, err := dataRepository.BuscarUsuarioPorCredenciales(c.UserContext(), req.Email, req.Password)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return c.Status(fiber.StatusUnauthorized).JSON(models.APIError{
 			Status:  fiber.StatusUnauthorized,
 			Message: "Credenciales incorrectas",
 		})
 	}
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.APIError{
+			Status:  fiber.StatusInternalServerError,
+			Message: "No se pudo consultar el usuario",
+		})
+	}
+
+	// El token sigue siendo ficticio durante esta fase; el rol y la identidad vienen de PostgreSQL.
+	token := "fake-jwt-token-456"
+	if usuario.Rol == "admin" {
+		token = "fake-jwt-token-123"
+	}
+	return c.JSON(fiber.Map{"token": token, "email": usuario.Email, "rol": usuario.Rol})
 }

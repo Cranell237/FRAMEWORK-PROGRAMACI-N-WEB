@@ -9,22 +9,30 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getProductos } from '../services/productosService';
 import type { Producto } from '../data/productos';
-import { categorias } from '../data/productos';
 
 const Storefront = () => {
   const { user } = useAuth();
-  const [destacados, setDestacados] = useState<Producto[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Consumimos el servicio de productos (mock que simula la API)
+    let activo = true;
     getProductos()
       .then((data) => {
-        setDestacados(data.slice(0, 4)); // mostramos solo 4 destacados
-        setLoading(false);
+        if (activo) setProductos(data);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        if (activo) setError('No se pudieron cargar los productos.');
+      })
+      .finally(() => {
+        if (activo) setLoading(false);
+      });
+    return () => { activo = false; };
   }, []);
+
+  const categorias = [...new Set(productos.map((producto) => producto.categoria))];
+  const destacados = productos.slice(0, 4);
 
   return (
     // Márgenes negativos (-m-4 sm:-m-8) para cancelar el padding del <main> del Layout
@@ -83,6 +91,8 @@ const Storefront = () => {
         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 text-center mb-10">
           Explora por Categoría
         </h2>
+        {loading && <p className="text-center text-slate-500 mb-6">Cargando categorías...</p>}
+        {error && <p className="text-center text-red-600 mb-6" role="alert">{error}</p>}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {categorias.map((cat) => (
             <Link
@@ -105,6 +115,8 @@ const Storefront = () => {
 
           {loading ? (
             <p className="text-center text-slate-500">Cargando destacados...</p>
+          ) : error ? (
+            <p className="text-center text-red-600" role="alert">{error}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {destacados.map((prod) => (

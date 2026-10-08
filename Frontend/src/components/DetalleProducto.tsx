@@ -16,6 +16,7 @@ const DetalleProducto = () => {
 
   const [producto, setProducto] = useState<Producto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [imagenActiva, setImagenActiva] = useState<number>(0);
   const [lightboxAbierto, setLightboxAbierto] = useState<boolean>(false);
   const [agregado, setAgregado] = useState<boolean>(false);
@@ -31,7 +32,10 @@ const DetalleProducto = () => {
         setLoading(false);
       })
       .catch(() => {
-        if (activo) setLoading(false);
+        if (activo) {
+          setError('No se pudo cargar el producto.');
+          setLoading(false);
+        }
       });
     return () => {
       activo = false;
@@ -50,6 +54,10 @@ const DetalleProducto = () => {
 
   if (loading) {
     return <div className="text-center p-8">Cargando producto...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-8 text-red-600" role="alert">{error}</div>;
   }
 
   if (!producto) {

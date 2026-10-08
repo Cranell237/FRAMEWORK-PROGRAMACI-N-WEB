@@ -5,6 +5,7 @@
 
 // Importamos el tipo Producto (desde Tema 5 vive en data/productos.ts) para reutilizarlo.
 import type { Producto } from '../data/productos';
+import type { Referido } from '../data/red';
 
 // ===== VERSIÓN ANTERIOR (fija a localhost) - conservada como referencia =====
 // Funciona en la PC, pero NO desde un celular: para el celular "localhost" es el propio celular.
@@ -55,5 +56,22 @@ export async function getProductos(): Promise<Producto[]> {
   }
 
   // Devolvemos el array de productos ya convertido a objetos JS.
+  return respuesta.json();
+}
+
+export async function getProductoById(id: number): Promise<Producto | undefined> {
+  const respuesta = await fetch(`${API_URL}/api/productos/${id}`);
+  if (respuesta.status === 404) return undefined;
+  if (!respuesta.ok) {
+    throw new Error('No se pudo cargar el producto');
+  }
+  return respuesta.json();
+}
+
+export async function getRed(): Promise<Referido> {
+  const respuesta = await fetch(`${API_URL}/api/red`);
+  if (!respuesta.ok) {
+    throw new Error('No se pudo cargar la red de referidos');
+  }
   return respuesta.json();
 }

@@ -18,6 +18,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const SESSION_KEY = 'multicatalogo_usuario';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -32,21 +33,32 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<Usuario | null>(null);
+  const [user, setUser] = useState<Usuario | null>(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (!saved) return null;
+      const parsed = JSON.parse(saved) as Partial<Usuario>;
+      if (typeof parsed.email === 'string' && (parsed.rol === 'admin' || parsed.rol === 'cliente')) {
+        return { email: parsed.email, rol: parsed.rol };
+      }
+    } catch {
+      // Una sesión local inválida requiere iniciar sesión de nuevo.
+    }
+    return null;
+  });
 
   const login = (usuario: Usuario) => {
-    setIsAuthenticated(true);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
     setUser(usuario);
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
+    sessionStorage.removeItem(SESSION_KEY);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated: user !== null, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

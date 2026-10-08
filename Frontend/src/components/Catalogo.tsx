@@ -7,12 +7,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { getProductos } from '../services/productosService';
-import { categorias, type Producto } from '../data/productos';
+import type { Producto } from '../data/productos';
 
 const Catalogo = () => {
   const { addToCart } = useCart();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Lectura del query string (?categoria=...) enviado desde el Storefront
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,14 +23,21 @@ const Catalogo = () => {
   const [categoria, setCategoria] = useState<string>(searchParams.get("categoria") ?? "Todas");
 
   useEffect(() => {
-    // Consumimos el servicio de productos (mock que simula la API)
+    let activo = true;
     getProductos()
       .then((data) => {
-        setProductos(data);
-        setLoading(false);
+        if (activo) setProductos(data);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        if (activo) setError('No se pudo cargar el catálogo.');
+      })
+      .finally(() => {
+        if (activo) setLoading(false);
+      });
+    return () => { activo = false; };
   }, []);
+
+  const categorias = [...new Set(productos.map((producto) => producto.categoria))];
 
   // Filtrado con useMemo: solo se recalcula cuando cambian busqueda/categoria/productos
   const productosFiltrados = useMemo(() => {
@@ -56,6 +64,10 @@ const Catalogo = () => {
 
   if (loading) {
     return <div className="text-center p-8">Cargando catálogo...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-8 text-red-600" role="alert">{error}</div>;
   }
 
   return (

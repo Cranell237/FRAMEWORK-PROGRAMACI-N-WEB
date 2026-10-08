@@ -1,13 +1,17 @@
 // src/components/Dashboard.tsx
-// Resumen general con KPIs calculados desde el estado real (Tema 5):
-// - Funciones puras de data/red.ts en lugar de valores estáticos
-import { redInicial, contarRed, sumarVentasRed, sumarComisiones, nivelAlcanzado, comisionDeReferido } from '../data/red';
+// Resumen general con KPIs calculados desde PostgreSQL.
+import { contarRed, sumarVentasRed, sumarComisiones, nivelAlcanzado, comisionDeReferido } from '../data/red';
+import { useRed } from '../hooks/useRed';
 
 const Dashboard = () => {
-  const referidosDirectos = redInicial.hijos?.length ?? 0;
-  const referidosActivos = contarRed(redInicial);
-  const ventasRed = sumarVentasRed(redInicial);
-  const comisionesMes = sumarComisiones(redInicial);
+  const { red, loading, error } = useRed();
+  if (loading) return <div className="text-center p-8">Cargando red de referidos...</div>;
+  if (error || !red) return <div className="text-center p-8 text-red-600">{error ?? 'Red no disponible.'}</div>;
+
+  const referidosDirectos = red.hijos?.length ?? 0;
+  const referidosActivos = contarRed(red);
+  const ventasRed = sumarVentasRed(red);
+  const comisionesMes = sumarComisiones(red);
   const nivel = nivelAlcanzado(referidosDirectos);
 
   const kpis = [
@@ -18,7 +22,7 @@ const Dashboard = () => {
   ];
 
   // Top 3 referidos por ventas (sin recursión: solo nivel 1)
-  const topReferidos = [...(redInicial.hijos ?? [])]
+  const topReferidos = [...(red.hijos ?? [])]
     .sort((a, b) => b.ventas - a.ventas)
     .slice(0, 3);
 
