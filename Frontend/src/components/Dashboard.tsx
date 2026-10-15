@@ -2,9 +2,11 @@
 // Resumen general con KPIs calculados desde PostgreSQL.
 import { contarRed, sumarVentasRed, sumarComisiones, nivelAlcanzado, comisionDeReferido } from '../data/red';
 import { useRed } from '../hooks/useRed';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-  const { red, loading, error } = useRed();
+  const { user } = useAuth();
+  const { red, loading, error } = useRed(user?.email);
   if (loading) return <div className="text-center p-8">Cargando red de referidos...</div>;
   if (error || !red) return <div className="text-center p-8 text-red-600">{error ?? 'Red no disponible.'}</div>;
 

@@ -1,12 +1,12 @@
 # MultiCatálogo
 
-Aplicación web de catálogo y red multinivel desarrollada como monorepo. Incluye una SPA en React, una API REST en Go con Fiber y persistencia relacional en PostgreSQL.
+Aplicación web de catálogo y red multinivel desarrollada como monorepo. Incluye una SPA en React, una API REST en Go con Fiber, persistencia relacional en PostgreSQL y caché de lecturas con Redis.
 
 ## Tecnologías
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS y React Router.
-- **Backend:** Go, Fiber y pgx.
-- **Base de datos:** PostgreSQL 16 ejecutado con Docker Compose.
+- **Backend:** Go, Fiber, pgx y go-redis.
+- **Datos:** PostgreSQL 16 y Redis Alpine ejecutados con Docker Compose.
 
 ## Arquitectura
 
@@ -15,18 +15,17 @@ React (puerto 5173)
         │ HTTP/JSON
         ▼
 Go + Fiber (puerto 3000)
-        │
+        │ Cache-Aside
+        ├──────────────► Redis (puerto 6379)
+        │ MISS/BYPASS
         ▼
-Repository + pgx
-        │
-        ▼
-PostgreSQL 16 (puerto 5432)
+Repository + pgx ─────► PostgreSQL 16 (puerto 5432)
 ```
 
 ```text
 Backend/
-├── config/          # Conexión y pool de PostgreSQL
-├── controllers/     # Manejo de peticiones y respuestas HTTP
+├── config/          # Conexiones con PostgreSQL y Redis
+├── controllers/     # HTTP y estrategia Cache-Aside
 ├── database/        # Esquema y datos iniciales
 ├── models/          # Estructuras del dominio y errores de la API
 ├── repository/      # Consultas SQL
@@ -65,6 +64,19 @@ La segunda fase reemplazó los datos en memoria por persistencia real:
 - La sesión de la interfaz se conserva durante una recarga mediante `sessionStorage`.
 - Se comprobó la persistencia modificando un precio en PostgreSQL y verificándolo en React.
 
+## Avance de la Fase 3
+
+La tercera fase incorporó Redis para reducir consultas repetidas a PostgreSQL:
+
+- Se añadió Redis Alpine a Docker Compose con puerto local `6379` y healthcheck.
+- Se incorporó el cliente oficial `github.com/redis/go-redis/v9`, configurado mediante `REDIS_URL`.
+- La API comprueba las conexiones con PostgreSQL y Redis al arrancar y cierra ambos clientes al detenerse.
+- `GET /api/productos` implementa Cache-Aside con la clave `productos:all` y TTL de 5 minutos.
+- `GET /api/red` utiliza la clave `red:tree:{email_usuario}` y TTL de 10 minutos.
+- El frontend envía el correo de la sesión en `X-User-Email` para separar la caché de la red por usuario.
+- Las respuestas cacheadas incluyen `X-Cache: MISS`, `HIT` o `BYPASS`, visible en Network o Postman.
+- Si Redis deja de estar disponible después del arranque, la API continúa consultando PostgreSQL y responde con `BYPASS`.
+
 ## Endpoints
 
 | Método | Ruta | Descripción |
@@ -77,7 +89,7 @@ La segunda fase reemplazó los datos en memoria por persistencia real:
 
 ## Requisitos
 
-- Docker Desktop con Docker Compose.
+- Docker Desktop con Docker Compose para PostgreSQL y Redis.
 - Go 1.26 o compatible.
 - Node.js y npm.
 
@@ -91,7 +103,7 @@ Desde `Backend/`, crea el archivo local de configuración a partir del ejemplo:
 Copy-Item .env.example .env
 ```
 
-Inicia PostgreSQL:
+Inicia PostgreSQL y Redis:
 
 ```powershell
 docker compose up -d --wait
@@ -103,7 +115,7 @@ Inicia la API:
 go run .
 ```
 
-La API estará disponible en `http://localhost:3000`. El archivo `Backend/.env` contiene configuración local y está excluido de Git.
+La API estará disponible en `http://localhost:3000`. El archivo `Backend/.env` contiene la configuración local de PostgreSQL y Redis, y está excluido de Git.
 
 ### 2. Frontend
 
@@ -133,7 +145,30 @@ npm --prefix Frontend run build
 npm --prefix Frontend run lint
 ```
 
-Para detener PostgreSQL sin borrar los datos persistidos:
+Comprueba la infraestructura:
+
+```powershell
+docker compose --project-directory Backend ps
+docker compose --project-directory Backend exec redis redis-cli ping
+```
+
+Para observar Cache-Aside desde PowerShell:
+
+```powershell
+$primera = Invoke-WebRequest http://localhost:3000/api/productos
+$segunda = Invoke-WebRequest http://localhost:3000/api/productos
+$primera.Headers["X-Cache"]  # MISS si la clave no existía
+$segunda.Headers["X-Cache"]  # HIT
+```
+
+La caché puede limpiarse manualmente durante una demostración:
+
+```powershell
+docker compose --project-directory Backend exec redis redis-cli DEL productos:all
+docker compose --project-directory Backend exec redis redis-cli DEL red:tree:admin@upse.edu.ec
+```
+
+Para detener PostgreSQL y Redis sin borrar el volumen de PostgreSQL:
 
 ```powershell
 docker compose --project-directory Backend down

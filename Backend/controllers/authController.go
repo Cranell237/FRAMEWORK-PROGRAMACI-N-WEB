@@ -9,14 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	// Importamos nuestro paquete de modelos para poder usar la estructura LoginRequest.
 	"multicatalogo-backend/models"
-	"multicatalogo-backend/repository"
 )
-
-var dataRepository *repository.Repository
-
-func SetRepository(repo *repository.Repository) {
-	dataRepository = repo
-}
 
 // Login es la función controladora que se ejecutará cuando el cliente envíe sus credenciales.
 func Login(c *fiber.Ctx) error {

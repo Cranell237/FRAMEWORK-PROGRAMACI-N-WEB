@@ -5,6 +5,7 @@ import (
 	"errors"
 	// Importamos strconv para convertir el parámetro de ruta (texto) a número entero de forma segura.
 	"strconv"
+	"time"
 
 	// Importamos Fiber para manejar la respuesta HTTP.
 	"github.com/gofiber/fiber/v2"
@@ -13,14 +14,33 @@ import (
 	"multicatalogo-backend/models"
 )
 
+const productosCacheKey = "productos:all"
+const productosCacheTTL = 5 * time.Minute
+
 // GetProductos es la función controladora encargada de devolver el catálogo de artículos.
 func GetProductos(c *fiber.Ctx) error {
-	productos, err := dataRepository.ObtenerProductos(c.UserContext())
+	ctx := c.UserContext()
+	var productos []models.Producto
+	hit, cacheErr := readCacheJSON(ctx, productosCacheKey, &productos)
+	if cacheErr == nil && hit {
+		c.Set(cacheHeader, "HIT")
+		return c.JSON(productos)
+	}
+	if cacheErr != nil {
+		c.Set(cacheHeader, "BYPASS")
+	} else {
+		c.Set(cacheHeader, "MISS")
+	}
+
+	productos, err := dataRepository.ObtenerProductos(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.APIError{
 			Status:  fiber.StatusInternalServerError,
 			Message: "No se pudieron consultar los productos",
 		})
+	}
+	if err := writeCacheJSON(ctx, productosCacheKey, productos, productosCacheTTL); err != nil {
+		c.Set(cacheHeader, "BYPASS")
 	}
 	return c.JSON(productos)
 }

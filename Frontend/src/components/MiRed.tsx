@@ -4,6 +4,7 @@
 // - Árbol jerárquico recursivo de referidos con comisión calculada por nivel
 import { contarRed, sumarVentasRed, sumarComisiones, nivelAlcanzado, comisionDeReferido, TASA_COMISION, type Referido } from '../data/red';
 import { useRed } from '../hooks/useRed';
+import { useAuth } from '../context/AuthContext';
 
 // Colores y etiquetas por nivel para el árbol
 const NIVEL_ESTILO: Record<number, { badge: string; border: string; tasa: string }> = {
@@ -54,7 +55,8 @@ const NodoReferido = ({ nodo }: { nodo: Referido }) => {
 };
 
 const MiRed = () => {
-  const { red, loading, error } = useRed();
+  const { user } = useAuth();
+  const { red, loading, error } = useRed(user?.email);
   if (loading) return <div className="text-center p-8">Cargando red de referidos...</div>;
   if (error || !red) return <div className="text-center p-8 text-red-600">{error ?? 'Red no disponible.'}</div>;
 

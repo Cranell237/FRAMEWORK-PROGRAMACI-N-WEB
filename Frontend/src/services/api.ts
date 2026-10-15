@@ -68,8 +68,10 @@ export async function getProductoById(id: number): Promise<Producto | undefined>
   return respuesta.json();
 }
 
-export async function getRed(): Promise<Referido> {
-  const respuesta = await fetch(`${API_URL}/api/red`);
+export async function getRed(email?: string): Promise<Referido> {
+  const respuesta = await fetch(`${API_URL}/api/red`, {
+    headers: email ? { 'X-User-Email': email } : {},
+  });
   if (!respuesta.ok) {
     throw new Error('No se pudo cargar la red de referidos');
   }

@@ -34,6 +34,13 @@ func run() error {
 	defer pool.Close()
 	controllers.SetRepository(repository.New(pool))
 
+	redisClient, err := config.ConnectRedis()
+	if err != nil {
+		return err
+	}
+	defer redisClient.Close()
+	controllers.SetCache(redisClient)
+
 	// Instanciamos una nueva aplicación de Fiber y la guardamos en la variable 'app'.
 	app := fiber.New()
 
@@ -54,7 +61,8 @@ func run() error {
 		// Si tu IP de red cambia, actualiza aquí la dirección http://<TU_IP>:5173.
 		AllowOrigins: "http://localhost:5173, http://127.0.0.1:5173, http://192.168.1.9:5173",
 		// Declaramos de forma explícita qué cabeceras (Headers) se permitirán en la comunicación.
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders:  "Origin, Content-Type, Accept, X-User-Email",
+		ExposeHeaders: "X-Cache",
 	}))
 
 	// Llamamos a la función SetupRoutes de nuestro paquete 'routes', enviándole la instancia de nuestra 'app'.

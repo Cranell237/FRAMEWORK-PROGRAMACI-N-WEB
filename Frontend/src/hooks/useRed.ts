@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import type { Referido } from '../data/red';
 import { getRed } from '../services/api';
 
-export function useRed() {
+export function useRed(email?: string) {
   const [red, setRed] = useState<Referido | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let activo = true;
-    getRed()
+    getRed(email)
       .then((data) => {
         if (activo) setRed(data);
       })
@@ -20,7 +20,7 @@ export function useRed() {
         if (activo) setLoading(false);
       });
     return () => { activo = false; };
-  }, []);
+  }, [email]);
 
   return { red, loading, error };
 }
